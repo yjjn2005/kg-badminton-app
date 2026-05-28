@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 <style>
 /* =========================================================
    KG BADMINTON SMART MATCHING — LUXURY UI
@@ -698,6 +699,7 @@ body{
 <!-- ===================== ACTION BAR ===================== -->
 <div class="action-bar">
   <div class="action-bar-inner">
+    <button class="btn btn-ghost btn-sm" onclick="openPhotoModal()">📸 사진 시뮬레이션</button>
     <button class="btn btn-ghost btn-sm" onclick="openModal('guide')">📖 운용방법</button>
     <button class="btn btn-ghost btn-sm" onclick="openQRScanner()">📷 QR 도착 인증</button>
     <button class="btn btn-ghost btn-sm" onclick="openMyQRChooser()">🆔 내 QR</button>
@@ -728,6 +730,59 @@ body{
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('add')">취소</button>
       <button class="btn btn-primary" id="btn-confirm-add" onclick="confirmAdd()">대기열 등록 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 사진 OCR 시뮬레이션 모달 -->
+<div class="modal-bg" id="modal-photo">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-head">
+      <div class="modal-title">📸 게임판 사진으로 시뮬레이션</div>
+      <button class="btn-icon" onclick="closeModal('photo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step 1: 사진 업로드 -->
+      <div id="photo-step-upload">
+        <div style="font-size:13px;color:var(--text-faint);margin-bottom:14px;line-height:1.6;">
+          체육관 게임판(화이트보드) 사진을 업로드하면 OCR로 회원 이름을 자동 인식하고,<br>
+          현재 시스템에 시뮬레이션으로 적용해볼 수 있습니다.
+        </div>
+        <div id="photo-dropzone" style="border:2px dashed var(--gold-soft);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;background:rgba(212,175,55,.04);transition:all .2s;">
+          <div style="font-size:48px;margin-bottom:8px;">📷</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ivory);margin-bottom:6px;">사진을 여기에 끌어다 놓거나 클릭하여 선택</div>
+          <div style="font-size:12px;color:var(--text-faint);">JPG·PNG·HEIC 지원 · 게임판이 잘 보이게 정면 촬영</div>
+          <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+        </div>
+      </div>
+
+      <!-- Step 2: 사진 + OCR 처리 -->
+      <div id="photo-step-process" style="display:none;">
+        <div style="text-align:center;margin-bottom:14px;">
+          <img id="photo-preview" style="max-width:100%;max-height:300px;border-radius:10px;border:1px solid var(--line);">
+        </div>
+        <div id="ocr-status" style="text-align:center;padding:14px;background:rgba(7,15,28,.4);border-radius:10px;margin-bottom:14px;font-size:13px;color:var(--text-dim);">
+          준비됨 — 'OCR 인식 시작' 버튼을 눌러주세요
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button class="btn btn-primary" style="flex:1;" id="btn-ocr-start" onclick="runOCR()">🔍 OCR 인식 시작</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetPhotoModal()">← 다시 선택</button>
+        </div>
+        <div id="ocr-raw" style="display:none;background:rgba(7,15,28,.5);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text-dim);max-height:120px;overflow-y:auto;white-space:pre-wrap;font-family:'D2Coding','Courier New',monospace;"></div>
+      </div>
+
+      <!-- Step 3: 인식된 회원 확인 -->
+      <div id="photo-step-confirm" style="display:none;">
+        <div style="font-size:13px;color:var(--text-faint);margin-bottom:12px;">
+          🎯 인식된 회원 (체크된 회원만 시뮬레이션 적용)
+        </div>
+        <div id="matched-members" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="unmatched-words" style="display:none;margin-top:12px;padding:12px;background:rgba(224,74,74,.06);border:1px solid rgba(224,74,74,.25);border-radius:8px;font-size:12px;color:var(--text-faint);"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('photo')">닫기</button>
+      <button class="btn btn-primary" id="btn-apply-photo" style="display:none;" onclick="applyPhotoSimulation()">시뮬레이션 적용 →</button>
     </div>
   </div>
 </div>
@@ -2510,6 +2565,236 @@ function closeQRScanner(){
 }
 
 // =========================================================
+// 📸 사진 OCR 기반 시뮬레이션
+// =========================================================
+let photoContext = null; // { file, dataUrl, ocrText, matched: [{member, confidence, checked}] }
+
+function openPhotoModal(){
+  photoContext = null;
+  $('#photo-step-upload').style.display = '';
+  $('#photo-step-process').style.display = 'none';
+  $('#photo-step-confirm').style.display = 'none';
+  $('#btn-apply-photo').style.display = 'none';
+  $('#ocr-raw').style.display = 'none';
+  $('#photo-input').value = '';
+  $('#modal-photo').classList.add('open');
+  // 드롭존 클릭 → 파일 선택
+  const dz = $('#photo-dropzone');
+  dz.onclick = () => $('#photo-input').click();
+  // 드래그앤드롭
+  dz.ondragover = e => { e.preventDefault(); dz.style.background='rgba(212,175,55,.12)'; };
+  dz.ondragleave = e => { dz.style.background='rgba(212,175,55,.04)'; };
+  dz.ondrop = e => {
+    e.preventDefault();
+    dz.style.background='rgba(212,175,55,.04)';
+    const file = e.dataTransfer.files[0];
+    if(file) processPhotoFile(file);
+  };
+}
+
+function handlePhotoUpload(event){
+  const file = event.target.files[0];
+  if(file) processPhotoFile(file);
+}
+
+function processPhotoFile(file){
+  if(!file.type.startsWith('image/')){ toast('이미지 파일만 가능합니다','error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoContext = { file, dataUrl: e.target.result };
+    $('#photo-preview').src = e.target.result;
+    $('#photo-step-upload').style.display = 'none';
+    $('#photo-step-process').style.display = '';
+    $('#ocr-status').innerHTML = '준비됨 — <strong style="color:var(--gold-bright);">🔍 OCR 인식 시작</strong> 버튼을 눌러주세요';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetPhotoModal(){
+  openPhotoModal();
+}
+
+async function runOCR(){
+  if(!photoContext){ toast('사진을 먼저 선택해주세요','error'); return; }
+  if(typeof Tesseract === 'undefined'){
+    $('#ocr-status').innerHTML = '<span style="color:var(--red);">❌ OCR 라이브러리 로드 실패 — 네트워크 확인 후 새로고침</span>';
+    return;
+  }
+  const btn = $('#btn-ocr-start');
+  btn.disabled = true; btn.textContent = '🔄 처리 중…';
+  $('#ocr-status').innerHTML = '🔄 OCR 모델 로딩 중… (첫 실행은 10~20초 소요, 이후 캐시됨)';
+  try{
+    const result = await Tesseract.recognize(photoContext.dataUrl, 'kor', {
+      logger: m => {
+        if(m.status === 'recognizing text'){
+          const pct = Math.round(m.progress * 100);
+          $('#ocr-status').innerHTML = `🔍 텍스트 인식 중… <strong style="color:var(--gold-bright);">${pct}%</strong>`;
+        } else if(m.status){
+          $('#ocr-status').innerHTML = `⚙ ${m.status}…`;
+        }
+      }
+    });
+    photoContext.ocrText = result.data.text;
+    $('#ocr-raw').style.display = '';
+    $('#ocr-raw').textContent = '[원본 OCR 결과]\n' + result.data.text;
+    matchMembersFromText(result.data.text);
+  }catch(err){
+    console.error('OCR 오류', err);
+    $('#ocr-status').innerHTML = `<span style="color:var(--red);">❌ OCR 실패: ${err.message||err}</span>`;
+  }finally{
+    btn.disabled = false; btn.textContent = '🔍 다시 OCR 인식';
+  }
+}
+
+// 한글 편집거리 (Levenshtein) 기반 퍼지 매칭
+function levenshtein(a, b){
+  if(!a || !b) return Math.max(a?.length||0, b?.length||0);
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, () => new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0] = i;
+  for(let j=0;j<=n;j++) dp[0][j] = j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
+  }
+  return dp[m][n];
+}
+
+function matchMembersFromText(rawText){
+  // 1. 텍스트 정제: 공백/특수문자 기준 토큰화, 한글 2~5자만
+  const tokens = rawText
+    .replace(/[^가-힣\sa-zA-Z0-9]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t && /[가-힣]/.test(t) && t.length >= 2 && t.length <= 6)
+    .filter((t, i, arr) => arr.indexOf(t) === i); // 중복 제거
+
+  // 2. 전체 회원 명단과 매칭
+  const allMembers = getAllMembers();
+  const matched = []; // {member, source, confidence}
+  const unmatched = []; // raw tokens that didn't match
+
+  tokens.forEach(token => {
+    const cleaned = token.replace(/\s/g, '');
+    let best = null;
+    allMembers.forEach(m => {
+      const name = m.name.replace(/\s/g, '');
+      // 완전 일치 (가장 좋음)
+      if(name === cleaned){
+        best = { member: m, confidence: 1.0 };
+        return;
+      }
+      // 포함 관계
+      if(name.includes(cleaned) || cleaned.includes(name)){
+        const score = Math.min(name.length, cleaned.length) / Math.max(name.length, cleaned.length);
+        if(!best || score > best.confidence){
+          best = { member: m, confidence: score * 0.85 };
+        }
+        return;
+      }
+      // 편집거리 (1자 차이까지 허용)
+      const dist = levenshtein(name, cleaned);
+      const ratio = 1 - dist / Math.max(name.length, cleaned.length);
+      if(ratio >= 0.65 && (!best || ratio > best.confidence)){
+        best = { member: m, confidence: ratio * 0.75 };
+      }
+    });
+    if(best && best.confidence >= 0.5){
+      // 중복 회원 제외
+      if(!matched.find(x => x.member.no === best.member.no)){
+        matched.push({ ...best, source: token });
+      }
+    } else {
+      unmatched.push(token);
+    }
+  });
+
+  // 신뢰도 높은 순 정렬
+  matched.sort((a,b) => b.confidence - a.confidence);
+
+  photoContext.matched = matched.map(m => ({...m, checked: m.confidence >= 0.75}));
+  photoContext.unmatched = unmatched;
+  renderMatchedMembers();
+  $('#photo-step-confirm').style.display = '';
+  $('#btn-apply-photo').style.display = '';
+}
+
+function renderMatchedMembers(){
+  if(!photoContext) return;
+  const list = photoContext.matched || [];
+  if(list.length === 0){
+    $('#matched-members').innerHTML = `<div class="empty-state">인식된 회원이 없습니다.<br>사진을 더 선명하게 다시 찍어주세요.</div>`;
+  } else {
+    $('#matched-members').innerHTML = list.map((x, i) => {
+      const conf = Math.round(x.confidence * 100);
+      const confColor = conf >= 85 ? 'var(--green)' : conf >= 70 ? 'var(--gold-bright)' : 'var(--text-dim)';
+      const m = x.member;
+      return `
+      <label class="member-row" style="cursor:pointer;">
+        <div class="member-info">
+          <input type="checkbox" ${x.checked?'checked':''} onchange="togglePhotoMember(${i}, this.checked)" style="width:18px;height:18px;accent-color:var(--gold);margin-right:4px;">
+          <span class="member-gender gender-${m.gender}">${m.gender}</span>
+          <div>
+            <div class="member-name">${m.name}</div>
+            <div class="member-meta">${m.year}년생 · ${m.grade}급 · OCR: "${x.source}"</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:${confColor};font-size:12px;font-weight:700;">신뢰도 ${conf}%</span>
+          <span class="grade grade-${m.grade.replace(/\s/g,'')}" style="padding:4px 8px;font-size:12px;">${m.grade}</span>
+        </div>
+      </label>`;
+    }).join('');
+  }
+  // 미인식 토큰
+  if(photoContext.unmatched && photoContext.unmatched.length > 0){
+    const un = $('#unmatched-words');
+    un.style.display = '';
+    un.innerHTML = `⚠ 회원 명단과 매칭되지 않은 인식어 (${photoContext.unmatched.length}개): <strong>${photoContext.unmatched.slice(0,15).join(', ')}</strong>${photoContext.unmatched.length>15?'…':''}`;
+  } else {
+    $('#unmatched-words').style.display = 'none';
+  }
+}
+
+function togglePhotoMember(idx, checked){
+  if(!photoContext || !photoContext.matched[idx]) return;
+  photoContext.matched[idx].checked = checked;
+}
+
+function applyPhotoSimulation(){
+  if(!photoContext) return;
+  const selected = photoContext.matched.filter(m => m.checked);
+  if(selected.length === 0){ toast('적용할 회원이 없습니다','error'); return; }
+  // 이미 참여 중인 회원 필터
+  const fresh = selected.filter(s => !isPlayerInUse({type:'member', no: s.member.no}));
+  if(fresh.length === 0){ toast('모든 회원이 이미 참여 중입니다','error'); return; }
+
+  // 시뮬레이션 적용 전략:
+  // 1) 비어있는 매칭 코트가 있으면 4명씩 자동 배정 (점수 최적화)
+  // 2) 남은 인원은 개인 풀로 등록 (시스템 자동 매칭)
+  const members = fresh.map(f => ({
+    type:'member', no:f.member.no, name:f.member.name,
+    gender:f.member.gender, grade:f.member.grade, year:f.member.year,
+    joinedAt: Date.now()
+  }));
+
+  const emptyMatchCourts = state.courts.filter(c => c.type==='match' && c.players.length===0);
+  let placed = 0;
+  // 모든 회원을 풀에 일단 등록 → autoFillCourts가 최적 매칭으로 코트에 자동 배정
+  members.forEach(m => state.pool.push(m));
+  saveState(); render();
+  // 자동 매칭 실행 (점수 우선)
+  let tries = emptyMatchCourts.length;
+  while(tries-- > 0){
+    const before = state.courts.filter(c => c.type==='match' && c.players.length===0).length;
+    autoFillCourts();
+    const after = state.courts.filter(c => c.type==='match' && c.players.length===0).length;
+    if(before === after) break;
+    placed += 4;
+  }
+  closeModal('photo');
+  toast(`사진 시뮬레이션 적용 완료 — 회원 ${members.length}명 (자동 코트 배정 ${placed}명 · 풀 ${members.length-placed}명)`,'success');
+}
+
+// =========================================================
 // 카카오톡 호출 알림 (공유 링크 방식 — API 키 불필요)
 // =========================================================
 function callKakao(courtId){
@@ -2552,6 +2837,9 @@ function closeModal(name){
   }
   if(name==='merge'){
     mergeContext = null;
+  }
+  if(name==='photo'){
+    photoContext = null;
   }
 }
 
