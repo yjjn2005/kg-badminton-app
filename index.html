@@ -700,6 +700,7 @@ body{
 <div class="action-bar">
   <div class="action-bar-inner">
     <button class="btn btn-ghost btn-sm" onclick="openPhotoModal()">📸 사진 시뮬레이션</button>
+    <a class="btn btn-ghost btn-sm" href="manual.docx" download="KG배드민턴_사용설명서.docx" style="text-decoration:none;">📄 설명서 다운로드</a>
     <button class="btn btn-ghost btn-sm" onclick="openModal('guide')">📖 운용방법</button>
     <button class="btn btn-ghost btn-sm" onclick="openQRScanner()">📷 QR 도착 인증</button>
     <button class="btn btn-ghost btn-sm" onclick="openMyQRChooser()">🆔 내 QR</button>
@@ -826,6 +827,13 @@ body{
       <button class="btn-icon" onclick="closeModal('guide')">✕</button>
     </div>
     <div class="modal-body">
+      <div style="background:linear-gradient(135deg, rgba(212,175,55,.12), rgba(212,175,55,.03));border:1px solid var(--gold-soft);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--gold-bright);margin-bottom:4px;">📄 전체 사용 설명서 (워드 문서)</div>
+          <div style="font-size:12px;color:var(--text-faint);">회원 단톡방 공유용 · 8장 구성 · 17.9 KB</div>
+        </div>
+        <a class="btn btn-primary btn-sm" href="manual.docx" download="KG배드민턴_사용설명서.docx" style="text-decoration:none;white-space:nowrap;">⬇ 다운로드</a>
+      </div>
       <div class="tabs" style="margin-bottom:18px;">
         <button class="tab active" data-gtab="member" onclick="switchGuideTab('member')">👤 회원용</button>
         <button class="tab" data-gtab="admin" onclick="switchGuideTab('admin')">👨‍💼 총무·임원용</button>
