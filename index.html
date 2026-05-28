@@ -528,6 +528,40 @@ body{
 }
 .special-player-row:hover{border-color:var(--gold-soft);}
 
+/* ========== MERGE CANDIDATE LIST ========== */
+.merge-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
+.merge-candidate{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;border-radius:12px;cursor:pointer;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--line-soft);
+  transition:all .15s;
+}
+.merge-candidate:hover{background:rgba(212,175,55,.07);border-color:var(--gold-soft);}
+.merge-candidate.selected{
+  background:rgba(212,175,55,.15);
+  border-color:var(--gold);
+  box-shadow:0 0 0 1px var(--gold-soft);
+}
+.merge-candidate .rec-rank{
+  width:32px;height:32px;border-radius:8px;
+  display:grid;place-items:center;font-size:13px;font-weight:900;
+  background:rgba(212,175,55,.12);color:var(--gold-bright);flex-shrink:0;
+}
+.merge-candidate.selected .rec-rank{background:var(--gold);color:var(--navy-900);}
+.merge-cand-info{flex:1;min-width:0;}
+.merge-cand-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+.merge-cand-meta{font-size:12px;color:var(--text-faint);display:flex;gap:8px;flex-wrap:wrap;}
+.merge-cand-meta .badge{
+  background:rgba(7,15,28,.5);padding:2px 7px;border-radius:5px;
+  font-size:11px;font-weight:600;
+}
+.merge-cand-meta .match-yes{color:var(--green);}
+.merge-cand-meta .match-no{color:var(--text-faint);}
+.merge-cand-grade{
+  font-size:12px;font-weight:800;padding:5px 11px;border-radius:6px;
+}
+
 /* ========== GUIDE SECTION ========== */
 .guide-section{display:flex;flex-direction:column;gap:12px;}
 .guide-step{
@@ -645,6 +679,17 @@ body{
         <button class="tab" data-tab="add-guest" onclick="switchAddMode('guest')">+ 게스트 등록</button>
       </div>
       <button class="btn btn-primary btn-lg" id="btn-add" style="width:100%;margin-bottom:14px;" onclick="openAddModal()">대기열에 추가</button>
+
+      <!-- 개인 풀 섹션 -->
+      <div id="pool-section" style="display:none;margin-bottom:18px;padding:14px;border-radius:12px;background:rgba(91,169,245,.05);border:1px solid rgba(91,169,245,.25);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:#5BA9F5;">🔀 자동 매칭 풀</div>
+          <div style="font-size:11px;color:var(--text-faint);" id="pool-count">0명</div>
+        </div>
+        <div id="pool-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <div id="pool-preview" style="margin-top:10px;font-size:11px;color:var(--text-faint);"></div>
+      </div>
+
       <div class="queue-list" id="queue-list"></div>
     </div>
   </aside>
@@ -670,7 +715,11 @@ body{
       <button class="btn-icon" onclick="closeModal('add')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="select-mode-hint">
+      <div id="add-mode-row" style="display:flex;gap:6px;margin-bottom:12px;padding:4px;background:rgba(7,15,28,.5);border-radius:8px;">
+        <button class="btn btn-sm" id="mode-group" style="flex:1;" onclick="setAddTarget('group')">👥 친한 그룹 등록</button>
+        <button class="btn btn-sm" id="mode-pool" style="flex:1;" onclick="setAddTarget('pool')">🔀 자동 매칭 풀</button>
+      </div>
+      <div class="select-mode-hint" id="add-hint">
         대기 인원을 선택하세요 (최소 1명 · 최대 4명) · 선택 <span class="select-count" id="sel-count">0</span>명
       </div>
       <input class="search-input" id="search-input" placeholder="이름으로 검색…" oninput="renderMemberList()">
@@ -997,6 +1046,28 @@ body{
   </div>
 </div>
 
+<!-- Override 직전 경기자 선택 모달 -->
+<div class="modal-bg" id="modal-merge">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-head">
+      <div class="modal-title">↻ 직전 경기자와 결합</div>
+      <button class="btn-icon" onclick="closeModal('merge')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="merge-context" style="padding:12px 16px;background:rgba(212,175,55,.08);border:1px solid var(--gold-soft);border-radius:10px;margin-bottom:14px;font-size:13px;line-height:1.6;"></div>
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;letter-spacing:.08em;">
+        ▸ 추천 순서: <strong style="color:var(--gold-bright);">급수 일치 ▸ 오늘 게임 수 적은 순</strong> 자동 정렬<br>
+        ▸ 총무 판단 + 회원 동의 후 <strong style="color:var(--gold-bright);">2명 클릭</strong>으로 선택해주세요
+      </div>
+      <div id="merge-candidates" class="merge-list"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('merge')">취소</button>
+      <button class="btn btn-primary" id="btn-confirm-merge" onclick="confirmMergeSelection()" disabled>선택 0명 — 결합 →</button>
+    </div>
+  </div>
+</div>
+
 <!-- 내 QR / QR 스캐너 모달 -->
 <div class="modal-bg" id="modal-qr">
   <div class="modal" style="max-width:480px;">
@@ -1190,6 +1261,8 @@ function defaultState(){
     nextGameNo: 1,
     customMembers: [],   // 운영 중 추가한 회원 목록
     deletedMemberNos: [], // 영구 비활성화한 회원 no 목록
+    pool: [],            // 개인 대기 풀 — 시스템 자동 매칭 대상
+    poolSeq: 0,
   };
 }
 
@@ -1226,6 +1299,8 @@ function loadState(){
     }
     if(!s.customMembers) s.customMembers = [];
     if(!s.deletedMemberNos) s.deletedMemberNos = [];
+    if(!s.pool) s.pool = [];
+    if(typeof s.poolSeq !== 'number') s.poolSeq = 0;
     return s;
   }catch(e){ return defaultState(); }
 }
@@ -1261,10 +1336,12 @@ function memberById(no){
 function isPlayerInUse(p){
   if(p.type==='guest'){
     return state.courts.some(c => c.players.some(pp => pp.type==='guest' && pp.guestId===p.guestId))
-        || state.queue.some(g => g.members.some(pp => pp.type==='guest' && pp.guestId===p.guestId));
+        || state.queue.some(g => g.members.some(pp => pp.type==='guest' && pp.guestId===p.guestId))
+        || (state.pool||[]).some(pp => pp.type==='guest' && pp.guestId===p.guestId);
   }
   return state.courts.some(c => c.players.some(pp => pp.type==='member' && pp.no===p.no))
-      || state.queue.some(g => g.members.some(pp => pp.type==='member' && pp.no===p.no));
+      || state.queue.some(g => g.members.some(pp => pp.type==='member' && pp.no===p.no))
+      || (state.pool||[]).some(pp => pp.type==='member' && pp.no===p.no);
 }
 
 function playerKey(p){ return p.type==='member' ? `m:${p.no}` : `g:${p.guestId}`; }
@@ -1414,7 +1491,8 @@ function renderQueue(){
     });
   }
   $('#queue-count-text').textContent = `${state.queue.length}개 그룹 · ${state.queue.reduce((s,g)=>s+g.members.length,0)}명`;
-  $('#hdr-waiting').textContent = state.queue.reduce((s,g)=>s+g.members.length,0);
+  const totalWaiting = state.queue.reduce((s,g)=>s+g.members.length,0) + (state.pool||[]).length;
+  $('#hdr-waiting').textContent = totalWaiting;
   $('#hdr-guests').textContent = `${state.guestCount} / ${GUEST_LIMIT}`;
 }
 
@@ -1488,6 +1566,7 @@ function renderStatsList(){
 // QUEUE / COURT ACTIONS
 // =========================================================
 let addMode = 'member'; // 'member' | 'guest'
+let addTarget = 'group'; // 'group' (4인까지 묶음) | 'pool' (개인 풀)
 let selectedMembers = []; // for modal selection
 
 function switchAddMode(m){
@@ -1496,15 +1575,35 @@ function switchAddMode(m){
   $('#btn-add').textContent = m==='member' ? '대기열에 추가' : '게스트 등록';
 }
 
+function setAddTarget(t){
+  addTarget = t;
+  const grp = $('#mode-group'), pool = $('#mode-pool');
+  if(grp && pool){
+    grp.className = 'btn btn-sm ' + (t==='group' ? 'btn-primary' : 'btn-ghost');
+    pool.className = 'btn btn-sm ' + (t==='pool' ? 'btn-primary' : 'btn-ghost');
+  }
+  // hint 메시지 변경
+  const hint = $('#add-hint');
+  if(hint){
+    if(t==='group'){
+      hint.innerHTML = `친한 4인조 등록 (최대 4명까지 묶음 대기) · 선택 <span class="select-count" id="sel-count">${selectedMembers.length}</span>명`;
+    } else {
+      hint.innerHTML = `🔀 개인 풀 등록 — 시스템이 다른 회원과 자동 매칭 (제한 없음) · 선택 <span class="select-count" id="sel-count">${selectedMembers.length}</span>명`;
+    }
+  }
+}
+
 function openAddModal(){
   selectedMembers = [];
   $('#search-input').value = '';
   $('#add-modal-title').textContent = addMode==='member' ? '회원 선택 (대기열 등록)' : '게스트 등록';
   if(addMode==='guest'){
-    // guest add inline modal -> custom flow
     openGuestModal();
     return;
   }
+  // 등록 대상 선택 토글 표시
+  const row = $('#add-mode-row'); if(row) row.style.display = 'flex';
+  setAddTarget(addTarget); // 현재 선택 유지하면서 라벨 갱신
   renderMemberList();
   $('#modal-add').classList.add('open');
   updateSelectCount();
@@ -1584,7 +1683,8 @@ function toggleMemberSelect(no){
   const i = selectedMembers.indexOf(no);
   if(i>=0) selectedMembers.splice(i,1);
   else {
-    if(selectedMembers.length>=4){ toast('최대 4명까지 선택 가능','error'); return; }
+    // 풀 등록 모드는 인원 제한 없음
+    if(addTarget === 'group' && selectedMembers.length>=4){ toast('그룹 등록은 최대 4명까지','error'); return; }
     selectedMembers.push(no);
   }
   updateSelectCount();
@@ -1597,38 +1697,111 @@ function updateSelectCount(){
 
 function confirmAdd(){
   if(selectedMembers.length===0){ toast('1명 이상 선택해주세요','error'); return; }
-  // 중복 참여 차단 (이미 코트/대기열에 있는 멤버 제외)
   const conflicts = selectedMembers.filter(no => isPlayerInUse({type:'member', no}));
   if(conflicts.length > 0){
     const names = conflicts.map(no => memberById(no).name).join(', ');
     toast(`이미 참여 중: ${names}`, 'error');
     return;
   }
-  const members = selectedMembers.map(no=>{
-    const m = memberById(no);
-    return {type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade};
-  });
-  state.queueSeq++;
-  state.queue.push({id: state.queueSeq, members, createdAt: Date.now()});
-  const addedCount = members.length;
-  selectedMembers = []; // 선택 초기화 — 모달 재오픈 시 깨끗한 상태
-  saveState();
-  closeModal('add');
-  render();
-  // Auto-assign if any court free and queue front is 4 people
-  autoFillCourts();
-  toast(`${addedCount}명 대기열 등록 완료`,'success');
+  const addedCount = selectedMembers.length;
+  if(addTarget === 'pool'){
+    // 개인 풀로 등록 (각자 개별 항목)
+    selectedMembers.forEach(no => {
+      const m = memberById(no);
+      state.pool.push({type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade, joinedAt: Date.now()});
+    });
+    selectedMembers = [];
+    saveState(); closeModal('add'); render();
+    autoFillCourts();
+    toast(`${addedCount}명 자동 매칭 풀 등록 완료`,'success');
+  } else {
+    // 친한 그룹으로 등록
+    const members = selectedMembers.map(no=>{
+      const m = memberById(no);
+      return {type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade};
+    });
+    state.queueSeq++;
+    state.queue.push({id: state.queueSeq, members, createdAt: Date.now()});
+    selectedMembers = [];
+    saveState(); closeModal('add'); render();
+    autoFillCourts();
+    toast(`${addedCount}명 그룹 대기열 등록 완료`,'success');
+  }
+}
+
+// 풀에서 최적 4인 조합 추출 (점수 가장 높은 조합)
+function findBestPoolCombination(){
+  const pool = state.pool || [];
+  if(pool.length < 4) return null;
+  // 대기 시간 정보 부여
+  const enriched = pool.map(p => ({...p, waitedSec: Math.floor((Date.now() - (p.joinedAt || Date.now()))/1000)}));
+  // 풀이 너무 크면 (>10명) 휴리스틱: 대기 시간 오래된 사람 중심 + 점수 평가
+  // 풀이 작으면 (4~9명) 모든 4인 조합 brute force
+  if(enriched.length <= 9){
+    let best = null;
+    const n = enriched.length;
+    for(let i=0;i<n-3;i++) for(let j=i+1;j<n-2;j++) for(let k=j+1;k<n-1;k++) for(let l=k+1;l<n;l++){
+      const four = [enriched[i],enriched[j],enriched[k],enriched[l]];
+      const score = calcCombinationScore(four);
+      if(!best || score > best.score) best = { four, idxs:[i,j,k,l], score };
+    }
+    return best;
+  } else {
+    // 휴리스틱: 가장 오래 기다린 1명을 고정 + 나머지 3명을 점수 최대화로 그리디 선택
+    enriched.sort((a,b) => b.waitedSec - a.waitedSec);
+    const anchor = enriched[0];
+    let bestRest = null;
+    const rest = enriched.slice(1);
+    const m = Math.min(rest.length, 12); // 후보 풀 상위 12명까지만
+    for(let i=0;i<m-2;i++) for(let j=i+1;j<m-1;j++) for(let k=j+1;k<m;k++){
+      const four = [anchor, rest[i], rest[j], rest[k]];
+      const score = calcCombinationScore(four);
+      if(!bestRest || score > bestRest.score) bestRest = { four, score };
+    }
+    if(!bestRest) return null;
+    // 원본 인덱스 찾기 (anchor + 3명)
+    const idxs = bestRest.four.map(f => pool.findIndex(p => playerKey(p)===playerKey(f)));
+    return { four: bestRest.four, idxs, score: bestRest.score };
+  }
 }
 
 function autoFillCourts(){
   // 일반 매칭(match) 타입 코트에만 자동 배정
+  // 우선순위: 완성된 그룹 점수 ↔ 풀 최적 조합 점수 비교 → 높은 쪽 채택
   state.courts.forEach(c=>{
     if(c.type !== 'match') return;
     if(c.players.length===0){
-      const idx = state.queue.findIndex(g=>g.members.length===4);
-      if(idx>=0){
-        const g = state.queue.splice(idx,1)[0];
-        startGame(c.id, g.members);
+      // 후보 1: 완성된 4인 그룹 중 최고 점수
+      const fullGroups = state.queue
+        .map((g, idx) => ({ kind:'group', g, idx, score: g.members.length===4 ? calcCombinationScore(g.members) : -1 }))
+        .filter(x => x.score >= 0)
+        .sort((a,b) => (b.score - a.score) || (a.g.createdAt - b.g.createdAt));
+      const bestGroup = fullGroups[0] || null;
+
+      // 후보 2: 풀에서 최적 4인 조합
+      const bestPool = findBestPoolCombination();
+
+      // 비교 후 선택
+      let winner = null;
+      if(bestGroup && bestPool){
+        winner = bestGroup.score >= bestPool.score ? {kind:'group', data:bestGroup} : {kind:'pool', data:bestPool};
+      } else if(bestGroup){
+        winner = {kind:'group', data:bestGroup};
+      } else if(bestPool){
+        winner = {kind:'pool', data:bestPool};
+      }
+      if(!winner) return;
+
+      if(winner.kind === 'group'){
+        const taken = state.queue.splice(winner.data.idx, 1)[0];
+        startGame(c.id, taken.members);
+      } else {
+        // 풀에서 4명 추출
+        const idxs = winner.data.idxs.slice().sort((a,b)=>b-a); // 큰 인덱스부터 제거
+        const taken = idxs.map(i => state.pool.splice(i,1)[0]);
+        // 풀에서 추출된 멤버는 waitedSec/joinedAt 제거하고 깨끗하게
+        const players = winner.data.four.map(p => ({type:p.type, no:p.no, name:p.name, gender:p.gender, grade:p.grade, ...(p.guestId?{guestId:p.guestId}:{})}));
+        startGame(c.id, players);
       }
     }
   });
@@ -1697,7 +1870,111 @@ function removeGroup(groupId){
 
 // =========================================================
 // OVERRIDE: 강제 결합 (직전 경기자 + 2인 대기)
+//  - 후보 자동 정렬: 급수 일치 우선 → 오늘 게임 수 적은 순
+//  - 총무가 모달에서 수동으로 2명 선택
 // =========================================================
+let mergeContext = null; // { groupId, need, selected: [playerKey] }
+
+function getTodayGameCount(playerKeyStr){
+  let cnt = 0;
+  state.gameLog.forEach(gl => gl.players.forEach(p => {
+    if(playerKey(p) === playerKeyStr) cnt++;
+  }));
+  return cnt;
+}
+
+// 급수 → 숫자 변환 (낮을수록 상급)
+const GRADE_ORDER = ['A','1A','B','C','D','초심'];
+function gradeNum(g){ const i = GRADE_ORDER.indexOf(g); return i<0 ? 5 : i; }
+
+// 종합 매칭 점수 (0~100점)
+// - 급수 분산 (낮을수록 좋음): 40점 만점
+// - 성비 균형 (2:2 이상적): 25점 만점
+// - 게임 수 균등 (오늘 적게 친 사람 우선): 20점 만점
+// - 대기 시간 가중치 (오래 기다린 사람 우선): 15점 만점
+function calcCombinationScore(four){
+  if(!four || four.length !== 4) return 0;
+  let score = 0;
+
+  // 1. 급수 분산 — 회원만 평가 (게스트는 평균값 가정)
+  const grades = four.filter(p=>p.type==='member').map(p=>gradeNum(p.grade));
+  if(grades.length >= 2){
+    const avg = grades.reduce((a,b)=>a+b,0) / grades.length;
+    const variance = grades.reduce((s,g)=>s+(g-avg)**2,0) / grades.length;
+    // variance 0=완벽일치, 0.25=인접급, 1=2급차, 4=3급차 이상
+    if(variance < 0.1) score += 40;
+    else if(variance < 0.5) score += 32;
+    else if(variance < 1.0) score += 22;
+    else if(variance < 2.0) score += 12;
+    else score += 4;
+  } else { score += 30; }
+
+  // 2. 성비 균형
+  const males = four.filter(p => p.gender === '남').length;
+  const females = four.filter(p => p.gender === '여').length;
+  const diff = Math.abs(males - females);
+  if(diff === 0) score += 25;       // 2:2 완벽
+  else if(diff === 2) score += 18;  // 3:1 또는 1:3
+  else score += 8;                  // 4:0 또는 0:4
+
+  // 3. 게임 수 균등 (오늘 적게 친 사람 비중 높을수록 좋음)
+  const games = four.map(p => getTodayGameCount(playerKey(p)));
+  const avgGames = games.reduce((a,b)=>a+b,0)/4;
+  if(avgGames === 0) score += 20;
+  else if(avgGames <= 1) score += 17;
+  else if(avgGames <= 2) score += 13;
+  else if(avgGames <= 3) score += 8;
+  else score += 3;
+
+  // 4. 대기 시간 가중치 (오래 기다린 사람이 끼어있으면 가산점)
+  const maxWaited = Math.max(0, ...four.map(p => p.waitedSec || 0));
+  if(maxWaited >= 30*60) score += 15;
+  else if(maxWaited >= 15*60) score += 10;
+  else if(maxWaited >= 5*60) score += 5;
+
+  return Math.round(score);
+}
+
+function scoreStars(score){
+  if(score >= 85) return '★★★★★';
+  if(score >= 70) return '★★★★';
+  if(score >= 55) return '★★★';
+  if(score >= 40) return '★★';
+  return '★';
+}
+
+function scoreColor(score){
+  if(score >= 85) return 'var(--green)';
+  if(score >= 70) return 'var(--gold-bright)';
+  if(score >= 55) return '#5BA9F5';
+  if(score >= 40) return 'var(--text-dim)';
+  return 'var(--red)';
+}
+
+// 후보 1명에 대한 그룹 합류 시 점수 (그룹 + 후보 = 3~4명 가정)
+function calcCandidateScore(groupMembers, candidate){
+  const hypothetical = [...groupMembers, candidate];
+  // 4명 미만이면 가상의 4번째(평균값)로 채워 계산
+  while(hypothetical.length < 4) hypothetical.push({grade:candidate.grade, gender:candidate.gender, type:'member'});
+  return calcCombinationScore(hypothetical);
+}
+
+function gradeMatchScore(targetGrades, candidateGrade){
+  // 대기 그룹의 평균/대표 급수와 후보 급수가 같으면 +2, 인접 등급이면 +1
+  const order = ['A','1A','B','C','D','초심'];
+  const t = order.indexOf(candidateGrade);
+  if(t < 0) return 0;
+  let best = 0;
+  targetGrades.forEach(g => {
+    const i = order.indexOf(g);
+    if(i < 0) return;
+    const dist = Math.abs(t - i);
+    if(dist === 0) best = Math.max(best, 2);
+    else if(dist === 1) best = Math.max(best, 1);
+  });
+  return best;
+}
+
 function mergeWithReturnees(groupId){
   if(!state.adminMode){ toast('관리자 모드를 켜주세요','error'); return; }
   const idx = state.queue.findIndex(g=>g.id===groupId);
@@ -1705,28 +1982,118 @@ function mergeWithReturnees(groupId){
   const g = state.queue[idx];
   const need = 4 - g.members.length;
 
-  // 직전 종료된 게임 로그에서 사용 가능한 회원 후보 추출
+  // 직전 게임들의 모든 회원 후보 추출 (중복 제거)
+  const seenKeys = new Set(g.members.map(playerKey));
   const recent = state.gameLog.slice(-3).flatMap(gl=>gl.players);
   const candidates = [];
-  const seenKeys = new Set(g.members.map(playerKey));
-  for(let i=recent.length-1;i>=0 && candidates.length<need;i--){
+  for(let i=recent.length-1;i>=0;i--){
     const p = recent[i];
-    if(!p) continue;
+    if(!p || p.type !== 'member') continue;
     const k = playerKey(p);
     if(seenKeys.has(k)) continue;
     if(isPlayerInUse(p)) continue;
-    seenKeys.add(k); candidates.push(p);
+    seenKeys.add(k);
+    candidates.push({...p, todayGames: getTodayGameCount(k)});
   }
-  if(candidates.length<need){
+  if(candidates.length < need){
     toast(`직전 경기자 중 사용 가능한 인원이 부족합니다 (${candidates.length}/${need})`,'error');
     return;
   }
-  g.members.push(...candidates);
-  // 결합 표시(연겜 마킹)
-  candidates.forEach(c => { c.isReturnee = true; });
+
+  // 자동 정렬: 종합 매칭 점수 ↓ (후보 합류 시 가상 4인 조합 점수)
+  candidates.forEach(c => { c.matchScore = calcCandidateScore(g.members, c); });
+  candidates.sort((a,b) => (b.matchScore - a.matchScore) || (a.todayGames - b.todayGames));
+
+  mergeContext = { groupId, need, candidates, selected: [] };
+  openMergeModal();
+}
+
+function openMergeModal(){
+  if(!mergeContext) return;
+  const { groupId, need, candidates } = mergeContext;
+  const g = state.queue.find(x=>x.id===groupId);
+  if(!g){ closeModal('merge'); return; }
+  $('#merge-context').innerHTML = `
+    <strong style="color:var(--gold-bright);">대기 그룹</strong> · ${g.members.map(m=>`${m.name}(${m.grade})`).join(', ')} (${g.members.length}/4)<br>
+    <strong style="color:var(--gold-bright);">필요 인원</strong> · ${need}명 — 아래 직전 경기자 중 ${need}명을 선택해주세요
+  `;
+  renderMergeCandidates();
+  updateMergeButton();
+  $('#modal-merge').classList.add('open');
+}
+
+function renderMergeCandidates(){
+  if(!mergeContext) return;
+  const { candidates, selected } = mergeContext;
+  const html = candidates.map((c, i) => {
+    const k = playerKey(c);
+    const isSelected = selected.includes(k);
+    const stars = scoreStars(c.matchScore);
+    const color = scoreColor(c.matchScore);
+    const gameLabel = c.todayGames === 0 ? `<span class="match-yes">오늘 0게임</span>` :
+                      `<span style="color:var(--text-dim);">오늘 ${c.todayGames}게임</span>`;
+    const genderEmoji = c.gender === '남' ? '♂' : '♀';
+    return `
+    <div class="merge-candidate ${isSelected?'selected':''}" onclick="toggleMergeSelect('${k}')">
+      <div class="rec-rank">${i+1}</div>
+      <div class="merge-cand-info">
+        <div class="merge-cand-name">${genderEmoji} ${c.name}
+          <span style="color:${color};font-weight:800;font-size:13px;margin-left:8px;letter-spacing:1px;">${stars}</span>
+          <span style="color:${color};font-size:11px;font-weight:700;margin-left:4px;">${c.matchScore}점</span>
+        </div>
+        <div class="merge-cand-meta">
+          <span class="badge">${gameLabel}</span>
+        </div>
+      </div>
+      <span class="merge-cand-grade grade-${(c.grade||'').replace(/\s/g,'')}">${c.grade}</span>
+    </div>`;
+  }).join('');
+  $('#merge-candidates').innerHTML = html;
+}
+
+function toggleMergeSelect(key){
+  if(!mergeContext) return;
+  const { need, selected } = mergeContext;
+  const i = selected.indexOf(key);
+  if(i >= 0){
+    selected.splice(i, 1);
+  } else {
+    if(selected.length >= need){
+      toast(`최대 ${need}명까지 선택 가능합니다`, 'error');
+      return;
+    }
+    selected.push(key);
+  }
+  renderMergeCandidates();
+  updateMergeButton();
+}
+
+function updateMergeButton(){
+  if(!mergeContext) return;
+  const { need, selected } = mergeContext;
+  const btn = $('#btn-confirm-merge');
+  btn.textContent = `선택 ${selected.length}/${need}명 — 결합 →`;
+  btn.disabled = selected.length !== need;
+}
+
+function confirmMergeSelection(){
+  if(!mergeContext) return;
+  const { groupId, need, candidates, selected } = mergeContext;
+  if(selected.length !== need){ toast(`${need}명을 선택해주세요`,'error'); return; }
+  const g = state.queue.find(x=>x.id===groupId);
+  if(!g){ closeModal('merge'); return; }
+  // 선택된 후보들을 가져와 결합
+  const chosen = selected.map(key => candidates.find(c => playerKey(c)===key))
+                          .filter(Boolean)
+                          .map(c => {
+                            // matchScore, todayGames 등 임시 필드 제거
+                            return { type:c.type, no:c.no, name:c.name, gender:c.gender, grade:c.grade, isReturnee: true };
+                          });
+  g.members.push(...chosen);
+  mergeContext = null;
+  closeModal('merge');
   saveState(); render();
   toast(`직전 경기자 ${need}명 결합 완료 — 연속 게임 1회 허용`,'success');
-  // 4명 완성 시 자동으로 빈 코트에 배정
   autoFillCourts();
 }
 
@@ -2055,11 +2422,11 @@ function onQRSuccess(text){
     setTimeout(closeQRScanner, 1200);
     return;
   }
-  // 즉시 단독 대기 그룹으로 등록 (1인 그룹 → 추후 결합)
-  state.queueSeq++;
-  state.queue.push({ id: state.queueSeq, members: [{type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade, arrived:true}], createdAt: Date.now() });
+  // 개인 풀에 자동 등록 (시스템이 자동 매칭)
+  state.pool.push({type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade, joinedAt: Date.now()});
   saveState(); render();
-  $('#qr-status').innerHTML = `<span style="color:var(--green)">✓ ${m.name}님 도착 인증 완료 · 대기열 등록</span>`;
+  autoFillCourts();
+  $('#qr-status').innerHTML = `<span style="color:var(--green)">✓ ${m.name}님 도착 인증 완료 · 자동 매칭 풀 등록</span>`;
   setTimeout(closeQRScanner, 1500);
 }
 
@@ -2111,6 +2478,9 @@ function closeModal(name){
   if(name==='qr' && qrScanner){
     try{ qrScanner.stop().then(()=>{ qrScanner.clear(); qrScanner=null; }); }catch(e){}
   }
+  if(name==='merge'){
+    mergeContext = null;
+  }
 }
 
 // =========================================================
@@ -2136,9 +2506,52 @@ setInterval(timerTick, 1000);
 // =========================================================
 // MASTER RENDER
 // =========================================================
+function renderPool(){
+  const pool = state.pool || [];
+  const section = $('#pool-section');
+  if(!section) return;
+  if(pool.length === 0){
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  $('#pool-count').textContent = `${pool.length}명`;
+  $('#pool-list').innerHTML = pool.map((p, idx) => {
+    const gradeClass = `grade-${(p.grade||'').replace(/\s/g,'')}`;
+    const wait = Math.floor((Date.now()-(p.joinedAt||Date.now()))/60000);
+    return `<span class="queue-chip" title="${wait}분 대기" onclick="removeFromPool(${idx})" style="cursor:pointer;">
+      ${p.gender==='남'?'♂':'♀'} ${p.name}<span class="grade ${gradeClass}">${p.grade}</span>
+    </span>`;
+  }).join('');
+  // 4명 이상이면 최적 조합 미리보기
+  if(pool.length >= 4){
+    const best = findBestPoolCombination();
+    if(best){
+      const stars = scoreStars(best.score);
+      const color = scoreColor(best.score);
+      $('#pool-preview').innerHTML = `
+        💡 다음 매칭 추천: <span style="color:${color};font-weight:800;">${best.four.map(p=>p.name).join(', ')}</span>
+        <span style="color:${color};margin-left:6px;">${stars} ${best.score}점</span>
+      `;
+    }
+  } else {
+    $('#pool-preview').innerHTML = `${4-pool.length}명 더 모이면 자동 매칭됩니다`;
+  }
+}
+
+function removeFromPool(idx){
+  const p = state.pool[idx];
+  if(!p) return;
+  if(!confirm(`${p.name}님을 풀에서 제거하시겠습니까?`)) return;
+  state.pool.splice(idx,1);
+  saveState(); render();
+  toast(`${p.name} 풀에서 제거됨`,'success');
+}
+
 function render(){
   renderCourts();
   renderQueue();
+  renderPool();
   renderStats();
   $('#btn-admin').innerHTML = state.adminMode ? '🔓 관리자 모드 ON' : '🔒 관리자 모드';
   $('#admin-banner').style.display = state.adminMode ? 'flex' : 'none';
