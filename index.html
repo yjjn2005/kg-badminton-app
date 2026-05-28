@@ -479,6 +479,55 @@ body{
   border-radius:10px;
 }
 
+/* ========== SPECIAL COURTS (난타 / 레슨) ========== */
+:root{
+  --cyan-accent:#5BE2D9;
+  --cyan-soft:rgba(91,226,217,.16);
+  --cyan-border:rgba(91,226,217,.35);
+  --purple-accent:#B59CFF;
+  --purple-soft:rgba(181,156,255,.16);
+  --purple-border:rgba(181,156,255,.35);
+}
+.court-card.court-drill{
+  border-color:var(--cyan-border);
+}
+.court-card.court-drill::before{
+  background:linear-gradient(90deg, transparent, var(--cyan-accent), transparent);
+  opacity:.7;
+}
+.court-card.court-drill .court-no-badge.type-drill{
+  background:var(--cyan-soft);border-color:var(--cyan-border);color:var(--cyan-accent);
+}
+.court-card.court-lesson{
+  border-color:var(--purple-border);
+}
+.court-card.court-lesson::before{
+  background:linear-gradient(90deg, transparent, var(--purple-accent), transparent);
+  opacity:.7;
+}
+.court-card.court-lesson .court-no-badge.type-lesson{
+  background:var(--purple-soft);border-color:var(--purple-border);color:var(--purple-accent);
+}
+.type-drill-badge{background:var(--cyan-soft);color:var(--cyan-accent);
+  font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  padding:5px 11px;border-radius:6px;}
+.type-lesson-badge{background:var(--purple-soft);color:var(--purple-accent);
+  font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  padding:5px 11px;border-radius:6px;}
+
+.special-players{
+  display:flex;flex-direction:column;gap:6px;
+  max-height:180px;overflow-y:auto;
+}
+.special-player-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 12px;border-radius:8px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--line-soft);
+  font-size:14px;font-weight:600;
+}
+.special-player-row:hover{border-color:var(--gold-soft);}
+
 /* ========== GUIDE SECTION ========== */
 .guide-section{display:flex;flex-direction:column;gap:12px;}
 .guide-step{
@@ -690,6 +739,16 @@ body{
             </div>
           </div>
         </div>
+        <div class="guide-step">
+          <div class="step-no" style="background:#5BE2D9;color:var(--navy-900);">5</div>
+          <div class="step-body">
+            <div class="step-title">난타 / 레슨 코트 이용</div>
+            <div class="step-desc">
+              <span style="color:#5BE2D9;font-weight:700;">난타 코트(5번)</span> — 4인 매칭 없이 자유롭게 연습하고 싶을 때 총무님에게 요청<br>
+              <span style="color:#B59CFF;font-weight:700;">레슨 코트(6번)</span> — 코치 1명 + 학생 다수로 진행하는 레슨 시간
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 총무용 -->
@@ -759,6 +818,42 @@ body{
         </div>
         <div class="guide-step">
           <div class="step-no">7</div>
+          <div class="step-body">
+            <div class="step-title">난타 코트 (코트 5) — 자유 연습</div>
+            <div class="step-desc">
+              <strong style="color:#5BE2D9;">난타 코트</strong>는 4인 1조 제약 없이 자유로운 연습 공간.<br>
+              ▸ <span class="kbd">+ 난타 인원 추가</span> — 인원 제한 없음 (검색 후 다중 선택)<br>
+              ▸ 우측 ✕ 로 개별 제거<br>
+              ▸ 자동 매칭 풀에서 제외됨 → 코트가 매칭에 잡히지 않음
+            </div>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-no">8</div>
+          <div class="step-body">
+            <div class="step-title">레슨 코트 (코트 6) — 코치 + 학생</div>
+            <div class="step-desc">
+              <strong style="color:#B59CFF;">레슨 코트</strong>는 1:N 레슨 진행용.<br>
+              ▸ <span class="kbd">+ 레슨 인원 추가</span> 시 <strong>처음 등록한 첫 번째 회원</strong>이 🎓 코치로 자동 지정<br>
+              ▸ 이후 추가 회원은 학생으로 등록<br>
+              ▸ 자동 매칭 풀에서 제외
+            </div>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-no">9</div>
+          <div class="step-body">
+            <div class="step-title">★ 난타/레슨 해지 — 인원 많을 때 일반 매칭 코트로 전환</div>
+            <div class="step-desc">
+              난타/레슨 없이 회원이 몰리는 시간대에는 특수 코트를 일반 매칭 코트로 즉시 전환 가능:<br>
+              ▸ 난타/레슨 코트의 <span class="kbd">🏸 해지</span> 버튼 클릭 (관리자 모드 필요)<br>
+              ▸ 진행 중 인원은 자동 해제 후 일반 매칭 코트로 변경 → 매칭 풀 합류<br>
+              ▸ 또는 ⚙ 톱니바퀴로 매칭 ↔ 난타 ↔ 레슨 순차 전환 가능
+            </div>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-no">10</div>
           <div class="step-body">
             <div class="step-title">드래그앤드롭 수동 배정 (고급)</div>
             <div class="step-desc">
@@ -1071,9 +1166,11 @@ const MEMBERS = [
 // =========================================================
 // STATE
 // =========================================================
-const COURT_COUNT = 4;
+const COURT_COUNT = 6;
 const GAME_DURATION = 15 * 60; // 15 minutes in seconds
 const GUEST_LIMIT = 5;
+const COURT_TYPE_DEFAULTS = {1:'match', 2:'match', 3:'match', 4:'match', 5:'drill', 6:'lesson'};
+const COURT_TYPE_LABEL = { match:'일반 매칭', drill:'난타', lesson:'레슨' };
 
 const STATE_KEY = 'kg_badminton_state_v1';
 let state = loadState();
@@ -1082,7 +1179,8 @@ function defaultState(){
   return {
     date: todayKey(),
     courts: Array.from({length: COURT_COUNT}, (_,i)=>({
-      id:i+1, players:[], startedAt:null, endsAt:null, gameNo:0
+      id:i+1, type: COURT_TYPE_DEFAULTS[i+1] || 'match',
+      players:[], startedAt:null, endsAt:null, gameNo:0
     })),
     queue: [], // array of groups {id, members:[{type,no?,name,gender?,grade?}], createdAt}
     guestCount: 0,
@@ -1114,6 +1212,20 @@ function loadState(){
     const s = JSON.parse(raw);
     // reset daily
     if(s.date !== todayKey()) return defaultState();
+    // 마이그레이션: 코트 6개 + type 필드
+    if(!s.courts || s.courts.length < COURT_COUNT){
+      const existing = s.courts || [];
+      s.courts = Array.from({length: COURT_COUNT}, (_,i)=>{
+        const id = i+1;
+        const old = existing.find(c=>c.id===id);
+        return old ? { ...old, type: old.type || COURT_TYPE_DEFAULTS[id] || 'match' }
+                   : { id, type: COURT_TYPE_DEFAULTS[id] || 'match', players:[], startedAt:null, endsAt:null, gameNo:0 };
+      });
+    } else {
+      s.courts.forEach(c=>{ if(!c.type) c.type = COURT_TYPE_DEFAULTS[c.id] || 'match'; });
+    }
+    if(!s.customMembers) s.customMembers = [];
+    if(!s.deletedMemberNos) s.deletedMemberNos = [];
     return s;
   }catch(e){ return defaultState(); }
 }
@@ -1191,12 +1303,14 @@ function renderCourts(){
 }
 
 function renderCourt(c){
+  if(c.type === 'drill') return renderSpecialCourt(c, 'drill');
+  if(c.type === 'lesson') return renderSpecialCourt(c, 'lesson');
+  // 일반 매칭 코트
   const isPlaying = c.players.length===4 && c.startedAt;
   const remaining = isPlaying ? Math.max(0, Math.floor((c.endsAt - Date.now())/1000)) : null;
   const slots = [0,1,2,3].map(i => c.players[i] || null);
   const slotsHTML = slots.map((p,i) => {
     if(!p) return `<div class="player-tag player-empty">빈 자리</div>`;
-    const grade = p.type==='member' ? p.grade : '게스트';
     const gradeClass = `grade-${(p.grade||'').replace(/\s/g,'')}` || '';
     return `<div class="player-tag">
       <span>${p.type==='guest'?'<span style="color:var(--gold);font-weight:800;font-size:12px;margin-right:4px;">G</span>':''}${p.name}</span>
@@ -1217,7 +1331,10 @@ function renderCourt(c){
         <div class="court-no-badge">${c.id}</div>
         <span>COURT ${c.id}</span>
       </div>
-      <div class="court-status ${isPlaying?'status-playing':'status-empty'}">${isPlaying?'경기 중':'대기 가능'}</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div class="court-status ${isPlaying?'status-playing':'status-empty'}">${isPlaying?'경기 중':'대기 가능'}</div>
+        ${state.adminMode ? `<button class="btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="changeCourtType(${c.id})" title="코트 유형 변경">⚙</button>` : ''}
+      </div>
     </div>
     <div class="players-row">${slotsHTML}</div>
     ${isPlaying ? `
@@ -1238,6 +1355,42 @@ function renderCourt(c){
         <button class="btn btn-ghost btn-sm" onclick="manualAssign(${c.id})" ${state.queue.length===0?'disabled':''}>대기열에서 배정</button>
       </div>
     `}
+  </div>`;
+}
+
+function renderSpecialCourt(c, kind){
+  const isDrill = kind==='drill';
+  const accent = isDrill ? 'drill' : 'lesson';
+  const title = isDrill ? '난타 코트' : '레슨 코트';
+  const subtitle = isDrill ? '자유 연습 · 인원 제한 없음' : '코치 + 학생 (1:N 레슨)';
+  const playersHTML = c.players.length === 0
+    ? `<div class="empty-state" style="margin:0;padding:24px 16px;font-size:13px;">아직 등록된 ${isDrill?'난타 참여자':'레슨 인원'}이 없습니다</div>`
+    : `<div class="special-players">${c.players.map((p,i)=>{
+        const gradeClass = `grade-${(p.grade||'').replace(/\s/g,'')}`;
+        const role = p.role === 'coach' ? '<span style="color:var(--gold);font-weight:900;font-size:11px;margin-right:4px;" title="코치">🎓</span>' : '';
+        return `<div class="special-player-row">
+          <span>${role}${p.type==='guest'?'<span style="color:var(--gold);font-weight:800;font-size:11px;margin-right:4px;">G</span>':''}${p.name}<span class="grade ${gradeClass}" style="margin-left:6px;">${p.type==='member'?p.grade:'G'}</span></span>
+          <button class="btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="removeFromSpecial(${c.id},${i})" title="제거">✕</button>
+        </div>`;
+      }).join('')}</div>`;
+  return `
+  <div class="court-card court-${accent} ${c.players.length>0?'active':'empty'}" data-court-id="${c.id}">
+    <div class="court-head">
+      <div class="court-no">
+        <div class="court-no-badge type-${accent}">${c.id}</div>
+        <span>COURT ${c.id} · <span style="color:var(--${accent==='drill'?'cyan':'purple'}-accent);">${title}</span></span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div class="court-status type-${accent}-badge">${c.players.length}명 ${isDrill?'난타':'레슨'} 중</div>
+        ${state.adminMode ? `<button class="btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="changeCourtType(${c.id})" title="코트 유형 변경">⚙</button>` : ''}
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-faint);margin-bottom:14px;letter-spacing:.04em;">${subtitle}</div>
+    ${playersHTML}
+    <div class="court-actions" style="margin-top:14px;">
+      <button class="btn btn-ghost btn-sm" onclick="openSpecialAdd(${c.id},'${kind}')" style="flex:1;">+ ${isDrill?'난타':'레슨'} 인원 추가</button>
+      <button class="btn btn-danger btn-sm" onclick="releaseSpecialCourt(${c.id})" title="일반 매칭 코트로 전환">🏸 해지</button>
+    </div>
   </div>`;
 }
 
@@ -1468,8 +1621,9 @@ function confirmAdd(){
 }
 
 function autoFillCourts(){
-  // Take first FULL group and assign to first empty court
+  // 일반 매칭(match) 타입 코트에만 자동 배정
   state.courts.forEach(c=>{
+    if(c.type !== 'match') return;
     if(c.players.length===0){
       const idx = state.queue.findIndex(g=>g.members.length===4);
       if(idx>=0){
@@ -1615,6 +1769,107 @@ function confirmReset(){
     saveState(); render();
     toast('초기화 완료','success');
   }
+}
+
+// =========================================================
+// 난타 / 레슨 코트 (특수 코트)
+// =========================================================
+let specialContext = null; // { courtId, kind }
+
+function openSpecialAdd(courtId, kind){
+  specialContext = { courtId, kind };
+  selectedMembers = [];
+  $('#add-modal-title').textContent = kind==='drill'
+    ? `난타 코트 ${courtId} — 참여자 추가`
+    : `레슨 코트 ${courtId} — 코치/학생 선택`;
+  $('#search-input').value='';
+  $('#search-input').style.display='';
+  $('#btn-confirm-add').textContent = kind==='drill' ? '난타 등록 →' : '레슨 등록 →';
+  $('#btn-confirm-add').onclick = () => confirmSpecialAdd();
+  $('#btn-confirm-add').style.display='';
+  renderMemberList();
+  $('#modal-add').classList.add('open');
+  updateSelectCount();
+  // hint
+  document.querySelector('.select-mode-hint').innerHTML = kind==='drill'
+    ? `난타 참여자 선택 (인원 제한 없음) · 선택 <span class="select-count" id="sel-count">0</span>명`
+    : `레슨 참가자 선택 — 첫 번째가 <strong style="color:var(--gold-bright);">코치 🎓</strong>로 자동 지정 · 선택 <span class="select-count" id="sel-count">0</span>명`;
+}
+
+function confirmSpecialAdd(){
+  if(!specialContext){ toast('컨텍스트 오류','error'); return; }
+  if(selectedMembers.length===0){ toast('1명 이상 선택해주세요','error'); return; }
+  const conflicts = selectedMembers.filter(no => isPlayerInUse({type:'member', no}));
+  if(conflicts.length>0){
+    toast(`이미 참여 중: ${conflicts.map(no=>memberById(no).name).join(', ')}`,'error');
+    return;
+  }
+  const c = state.courts.find(x=>x.id===specialContext.courtId);
+  if(!c){ toast('코트를 찾을 수 없습니다','error'); return; }
+  const isLesson = specialContext.kind==='lesson';
+  const additions = selectedMembers.map((no, idx)=>{
+    const m = memberById(no);
+    const isCoach = isLesson && c.players.length===0 && idx===0; // 첫 등록 첫 번째만 코치
+    return { type:'member', no:m.no, name:m.name, gender:m.gender, grade:m.grade, role: isCoach ? 'coach' : 'student' };
+  });
+  c.players.push(...additions);
+  if(!c.startedAt) c.startedAt = Date.now();
+  const addedCount = additions.length;
+  selectedMembers = [];
+  specialContext = null;
+  saveState();
+  closeModal('add');
+  render();
+  toast(`${addedCount}명 ${isLesson?'레슨':'난타'} 등록 완료`,'success');
+}
+
+function removeFromSpecial(courtId, idx){
+  const c = state.courts.find(x=>x.id===courtId);
+  if(!c || !c.players[idx]) return;
+  const removed = c.players[idx];
+  c.players.splice(idx,1);
+  if(c.players.length===0){ c.startedAt = null; }
+  saveState(); render();
+  toast(`${removed.name} 제거됨`,'success');
+}
+
+function changeCourtType(courtId){
+  if(!state.adminMode){ toast('관리자 모드를 켜주세요','error'); return; }
+  const c = state.courts.find(x=>x.id===courtId);
+  if(!c) return;
+  const current = c.type;
+  const choices = [
+    {v:'match', label:'일반 매칭 코트 (4인 1조)'},
+    {v:'drill', label:'난타 코트 (자유 인원)'},
+    {v:'lesson', label:'레슨 코트 (코치 + 학생)'}
+  ];
+  const idx = choices.findIndex(x=>x.v===current);
+  const nextIdx = (idx+1) % choices.length;
+  const next = choices[nextIdx];
+  if(c.players.length>0){
+    if(!confirm(`현재 코트 ${courtId}에 ${c.players.length}명 진행 중입니다.\n타입 변경 시 모두 비워집니다. 계속할까요?\n\n현재: ${COURT_TYPE_LABEL[current]} → 변경: ${next.label}`)) return;
+  }
+  c.type = next.v;
+  c.players = [];
+  c.startedAt = null; c.endsAt = null; c.gameNo = 0;
+  saveState(); render();
+  toast(`코트 ${courtId} → ${next.label}`,'success');
+  if(next.v === 'match') autoFillCourts();
+}
+
+function releaseSpecialCourt(courtId){
+  if(!state.adminMode){ toast('관리자 모드를 켜주세요','error'); return; }
+  const c = state.courts.find(x=>x.id===courtId);
+  if(!c) return;
+  const wasType = COURT_TYPE_LABEL[c.type];
+  if(c.players.length>0){
+    if(!confirm(`${wasType} 코트 ${courtId}의 ${c.players.length}명이 모두 해제됩니다.\n일반 매칭 코트로 전환할까요?`)) return;
+  }
+  c.type = 'match';
+  c.players = [];
+  c.startedAt = null; c.endsAt = null; c.gameNo = 0;
+  saveState(); render(); autoFillCourts();
+  toast(`코트 ${courtId} 해지됨 → 일반 매칭 코트`,'success');
 }
 
 // =========================================================
@@ -1851,6 +2106,7 @@ function closeModal(name){
     $('#btn-confirm-add').style.display='';
     $('#btn-confirm-add').textContent='대기열 등록 →';
     $('#btn-confirm-add').onclick = confirmAdd;
+    specialContext = null;
   }
   if(name==='qr' && qrScanner){
     try{ qrScanner.stop().then(()=>{ qrScanner.clear(); qrScanner=null; }); }catch(e){}
